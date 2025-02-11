@@ -3,9 +3,9 @@
 #include <time.h>
 #include <cuda_runtime.h>
 
-#define M 512 
+#define M 256 
 #define K 512
-#define N 512
+#define N 128
 #define BLOCK_SIZE 32
 
 // A is M*K
@@ -29,8 +29,8 @@ void matmul_cpu(float* A, float* B, float*C, int m, int k, int n){
 
 __global__ void matmul_gpu(float* A, float* B, float* C, int m, int k, int n){
     
-    int col = blockIdx.x*blockDim.x + threadIdx.x;
-    int row = blockIdx.y*blockDim.y + threadIdx.y;
+    int row = blockIdx.x*blockDim.x + threadIdx.x;
+    int col = blockIdx.y*blockDim.y + threadIdx.y;
 
     //You are in thread(row, col) that finds element in C at (row, col)
     //Need to make sure that row and col are within bounds in C
@@ -85,11 +85,12 @@ int main() {
     cudaMemcpy(d_B, h_B, size_B, cudaMemcpyHostToDevice);
 
     //Lets see for X first
-    // We have to fit total M threads along the Y-axis. Threads in a block in Y = BLOCK_SIZE. Number of blocks in Y = (M+BLOCK_SIZE-1)/BLOCK_SIZE
-    // We have to fit total N threads along the X-axis. Threads in a block in X = BLOCK_SIZE. Number of blocks in X = (N+BLOCK_SIZE-1)/BLOCK_SIZE
+    // In the naive kernel, I have rows handled by threads in the X direction. We have M rows in all and therefore m threads in the x direction
+    // We have to fit total M threads along the X-axis. Threads in a block in X = BLOCK_SIZE. Number of blocks in X = (M+BLOCK_SIZE-1)/BLOCK_SIZE
+    // We have to fit total N threads along the Y-axis. Threads in a block in Y = BLOCK_SIZE. Number of blocks in Y = (N+BLOCK_SIZE-1)/BLOCK_SIZE
 
     dim3 blockDim(BLOCK_SIZE, BLOCK_SIZE); //These are number of threads in x and y inside the block
-    dim3 gridDim((N+BLOCK_SIZE-1)/BLOCK_SIZE, (M+BLOCK_SIZE-1)/BLOCK_SIZE);
+    dim3 gridDim((M+BLOCK_SIZE-1)/BLOCK_SIZE, (N+BLOCK_SIZE-1)/BLOCK_SIZE);
 
     matmul_cpu(h_A, h_B, h_C_cpu, M, K, N);
     matmul_gpu<<<gridDim, blockDim>>>(d_A, d_B, d_C, M, K, N);
