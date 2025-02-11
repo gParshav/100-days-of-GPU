@@ -17,3 +17,12 @@ Implemented a CUDA kernel for addying 2 1D Arrays.
 
 **Learned:**  
 - Same concepts with an extra input in form of an array.
+
+### Day 3: Naive Matmul (`matmul_gpu.cu`)  
+
+**Summary:**  
+Implemented a CUDA kernel for multiplying two matrices.  
+
+**Learned:**  
+- Indexing 2D threads and blocks.
+- Also, read PMPP chapter 2.
