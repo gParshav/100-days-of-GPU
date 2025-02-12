@@ -26,3 +26,11 @@ Implemented a CUDA kernel for multiplying two matrices.
 **Learned:**  
 - Indexing 2D threads and blocks.
 - Also, read PMPP chapter 2.
+
+### Day 4: Global memory coalescing in Matmul (`matmul_gpu.cu`)  
+
+**Summary:**  
+Implemented a CUDA kernel with coalesced global memory accesseses for multiplying two matrices.  
+
+**Learned:**  
+- Understood the fundamental logic behing global memory coalescing.
