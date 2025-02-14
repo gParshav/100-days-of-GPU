@@ -15,16 +15,11 @@ void init_vector(float* vec, int n) {
 
 // CPU implementation of softmax
 void softmax_cpu(float* input, float* output, int n) {
-    float max_val = input[0];
-    for (int i = 1; i < n; i++) {
-        if (input[i] > max_val) {
-            max_val = input[i];
-        }
-    }
-
+    
     float sum = 0.0f;
     for (int i = 0; i < n; i++) {
-        output[i] = expf(input[i] - max_val);
+        // output[i] = expf(input[i] - max_val);
+        output[i] = expf(input[i]);
         sum += output[i];
     }
 
@@ -38,21 +33,13 @@ __global__ void softmax_gpu(float* input, float* output, int n) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= n) return;
 
-    // Step 1: Compute max (incorrectly, each thread assumes input[0] is max)
-    float max_val = input[0];  
-    for (int i = 1; i < n; i++) {  
-        if (input[i] > max_val) {
-            max_val = input[i];  
-        }
-    }
-
     // Step 2: Compute exp(x - max)
-    output[index] = expf(input[index] - max_val);
+    output[index] = expf(input[index]);
 
     // Step 3: Compute sum (incorrectly, each thread assumes full responsibility)
     float sum = 0.0f;
     for (int i = 0; i < n; i++) {
-        sum += output[i];  
+        sum += expf(input[i]);  
     }
 
     // Step 4: Normalize
