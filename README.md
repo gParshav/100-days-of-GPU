@@ -34,3 +34,10 @@ Implemented a CUDA kernel with coalesced global memory accesseses for multiplyin
 
 **Learned:**  
 - Understood the fundamental logic behing global memory coalescing.
+
+### Day 5: Softmax (`softmax_gpu.cu`)  
+
+**Summary:**  
+Implemented a CUDA kernel to compute the softmax of an array.
+
+Also, the softmax kernel in its current form is super inefficient. I would want to considerably optimize this over a series of kernels.
