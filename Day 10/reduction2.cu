@@ -22,16 +22,21 @@ void reduction_cpu(float* a, float* c, int n) {
 __global__ void reduction_gpu(float* a, float* c, int n) {
     int tid = threadIdx.x;
     int index = blockIdx.x * blockDim.x + threadIdx.x;
+    extern __shared__ float s_data[];
+
     
     if (index < n) {
+        s_data[tid] = a[index];
+        __syncthreads();
+
         for (unsigned int stride = 1; stride < blockDim.x; stride *= 2) {
             if (tid % (2 * stride) == 0 && index + stride < n) {
-                a[index] = a[index] + a[index + stride];
+                s_data[tid] += s_data[tid + stride];
             }
             __syncthreads();
         }
         if (tid == 0) {
-            c[blockIdx.x] = a[index]; 
+            c[blockIdx.x] = s_data[0]; 
         }
     }
 }
