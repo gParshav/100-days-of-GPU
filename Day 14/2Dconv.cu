@@ -3,13 +3,11 @@
 #include <time.h>
 #include <cuda_runtime.h>
 
-#define M 256 
-#define K 512
-#define N 128
-#define BLOCK_SIZE 32
+#define M 256
+#define N 128 
+#define K 3
 
-// A is M*K
-// B is K*N
+#define BLOCK_SIZE 32
 
 // A*B will be M*N
 
@@ -32,7 +30,7 @@ __global__ void conv2d_gpu(float* image, float* filter, float* C, int m, int n, 
                 }
             }
         }
-        // printf("%f\n", sum);
+
         C[row*n+col] = sum;
     }
 
@@ -77,11 +75,6 @@ int main() {
 
     cudaMemcpy(d_image, h_image, size_image, cudaMemcpyHostToDevice);
     cudaMemcpy(d_filter, h_filter, size_filter, cudaMemcpyHostToDevice);
-
-    //Lets see for X first
-    // In the naive kernel, I have rows handled by threads in the X direction. We have M rows in all and therefore m threads in the x direction
-    // We have to fit total M threads along the X-axis. Threads in a block in X = BLOCK_SIZE. Number of blocks in X = (M+BLOCK_SIZE-1)/BLOCK_SIZE
-    // We have to fit total N threads along the Y-axis. Threads in a block in Y = BLOCK_SIZE. Number of blocks in Y = (N+BLOCK_SIZE-1)/BLOCK_SIZE
 
     dim3 blockDim(BLOCK_SIZE, BLOCK_SIZE); //These are number of threads in x and y inside the block
     dim3 gridDim((N+BLOCK_SIZE-1)/BLOCK_SIZE, (M+BLOCK_SIZE-1)/BLOCK_SIZE);
