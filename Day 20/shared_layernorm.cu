@@ -4,9 +4,10 @@
 #include <math.h>
 #include <cuda_runtime.h>
 
-#define M 25600
-#define N 12800
-#define BLOCK_SIZE 32
+#define M 1024
+#define N 1024
+#define BLOCK_SIZE 256
+#define EPSILON 1e-6
 
 void layernorm_cpu(float* A, float* C, int m, int n) {
     for (int i = 0; i < m; i++) {
@@ -27,23 +28,59 @@ void layernorm_cpu(float* A, float* C, int m, int n) {
     }
 }
 
-__global__ void layernorm_gpu(float* A, float* C, int m, int n) {
-    int row = blockIdx.x * blockDim.x + threadIdx.x;
-    if (row >= m) return;
-    
-    float sum = 0.0f;
-    for (int j = 0; j < n; j++) {
-        sum += A[row * n + j];
+__global__ void sharedlayernorm_gpu(float* A, float* C, int m, int n) {
+
+    __shared__ float smem[1024];
+    int row = blockIdx.x;
+    int tidx = threadIdx.x;
+
+    if(row>=m){
+        return;
     }
-    float mean = sum / n;
-    float diff_sum = 0.0f;
-    for (int j = 0; j < n; j++) {
-        diff_sum += (A[row * n + j] - mean) * (A[row * n + j] - mean);
+
+
+    float lmean = 0.0f;
+    float lvar = 0.0f;
+
+    for(int i = tidx; i < n; i+=blockDim.x){
+        float curr = A[row*n+i]; 
+        lmean += curr;
+        lvar += (curr*curr);
     }
-    float var = diff_sum / n;
-    float stddev = sqrt(var);
-    for (int j = 0; j < n; j++) {
-        C[row * n + j] = (A[row * n + j] - mean) / stddev;
+
+    __syncthreads();
+    smem[tidx] = lmean;
+    __syncthreads();
+
+
+    for(int stride = blockDim.x/2; stride >0; stride /=2){
+        if(tidx < stride){
+            smem[tidx] += smem[tidx + stride]; 
+        }
+        __syncthreads();
+    }
+
+    float gmean = smem[0] / n;
+    __syncthreads();
+
+    smem[tidx] = lvar;
+    __syncthreads();
+
+    for(int stride = blockDim.x; stride > 0; stride /= 2){
+        if(tidx < stride){
+            smem[tidx] += smem[tidx + stride];
+
+        }
+        __syncthreads();
+    }
+
+    float gvar = (smem[0]/n) - (gmean * gmean);
+    float stddev = rsqrtf(gvar + EPSILON); 
+    __syncthreads();
+
+
+    for(int i = tidx; i < n; i += blockDim.x){
+        C[row*n+i] = (A[row*n+i] - gmean) * stddev;
     }
 }
 
@@ -78,7 +115,7 @@ int main() {
     cudaMemcpy(d_A, h_A, size_A, cudaMemcpyHostToDevice);
 
     dim3 blockDim(BLOCK_SIZE, 1);
-    dim3 gridDim((M + BLOCK_SIZE - 1) / BLOCK_SIZE, 1);
+    dim3 gridDim(M, 1);
 
     double start_cpu = get_time();
     layernorm_cpu(h_A, h_C_cpu, M, N);
@@ -86,7 +123,7 @@ int main() {
     printf("CPU Time: %f seconds\n", end_cpu - start_cpu);
 
     double start_gpu = get_time();
-    layernorm_gpu<<<gridDim, blockDim>>>(d_A, d_C, M, N);
+    sharedlayernorm_gpu<<<gridDim, blockDim>>>(d_A, d_C, M, N);
     cudaDeviceSynchronize();
     double end_gpu = get_time();
     printf("GPU Time: %f seconds\n", end_gpu - start_gpu);
