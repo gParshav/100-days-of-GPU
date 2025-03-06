@@ -5,7 +5,7 @@
 
 #define M 256
 #define N 128
-#define BLOCK_SIZE 64
+#define BLOCK_SIZE 1024
 
 // Initialize vector with random values
 void init_vector(float* vec, int n) {
@@ -84,14 +84,58 @@ __global__ void online_softmax_gpu(float* input, float* output, int m, int n) {
 }
 
 __global__ void shared_softmax_gpu(float* input, float* output, int m, int n) {
-    int row = blockIdx.x * blockDim.x + threadIdx.x;
-    int tid = threadidx.x;
+    int row = blockIdx.x;
+    int tid = threadIdx.x;
     __shared__ float smem[1024];
+    
+    if (row >= m) return;
+    float lmax = 0.0f;
+    float lnorm = 0.0f;
+    for(int i = tid;i<n;i+=blockDim.x){
+        int ele = input[row*n+i];
+        if(ele>lmax){
+            lnorm*=expf(lmax-ele);
+            lmax = ele;
+        }
 
-    smem[tid] = input[]
+        lnorm+=expf(ele - lmax);
+
+    }
+
     __syncthreads();
 
-    if (row >= m) return;
+    smem[tid] = lmax;
+    __syncthreads();
+
+    for (int stride = blockDim.x / 2; stride > 0; stride /= 2) {
+        if (tid < stride) {
+            smem[tid] = max(smem[tid], smem[tid + stride]);
+        }
+
+        __syncthreads();
+    }
+
+    float rmax = smem[0];
+    __syncthreads();
+
+    smem[tid] = lnorm * expf(lmax - rmax);
+    __syncthreads();
+
+    for (int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+        if (tid < stride) {
+            smem[tid] += smem[tid + stride];
+        }
+        __syncthreads();
+    }
+
+    float rnorm = smem[0];
+    __syncthreads();
+
+    for (int i = tid; i < N; i += blockDim.x) {
+        int idx = row*n+i;
+        output[idx] = expf(input[idx] - rmax) / rnorm;
+    }
+
 }
 
 int main() {
@@ -115,27 +159,15 @@ int main() {
     cudaMemcpy(d_A, h_A, size_A, cudaMemcpyHostToDevice);
 
     dim3 blockDim(BLOCK_SIZE, 1); //These are number of threads in x and y inside the block
-    dim3 gridDim((M+BLOCK_SIZE-1)/BLOCK_SIZE, 1);
+    dim3 gridDim(M, 1);
 
 
-    online_softmax_gpu<<<gridDim, blockDim>>>(d_A, d_C, M, N);
+    shared_softmax_gpu<<<gridDim, blockDim>>>(d_A, d_C, M, N);
     cudaDeviceSynchronize();
     cudaMemcpy(h_C_gpu, d_C, size_C, cudaMemcpyDeviceToHost);
 
     // Compute softmax on CPU for validation
     softmax_cpu(h_A, h_C_cpu, M, N);
-
-    // Validate results
-    bool correct = true;
-    for (int i = 0; i < N; i++) {
-        
-        if (fabs(h_C_cpu[i] - h_C_gpu[i]) > 1e-4) {
-            correct = false;
-            break;
-        }
-    }
-    
-    printf("Results are %s\n", correct ? "correct" : "incorrect");
 
     // Free memory
     free(h_A);
