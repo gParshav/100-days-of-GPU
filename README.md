@@ -1,43 +1,33 @@
-## CUDA Experiments  
+**CUDA Progress**
 
-### Day 1: 1D Array Copy (`1Dcopy.cu`)  
-
-**Summary:**  
-Implemented a CUDA kernel for copying a 1D array.  
-
-**Learned:**  
-- Indexing threads using a 1D hierarchy.  
-- Allocating memory on the GPU (`cudaMalloc`).  
-- Transferring memory between CPU and GPU (`cudaMemcpy`).  
-
-### Day 2: 1D Array Addition (`add.cu`)  
-
-**Summary:**  
-Implemented a CUDA kernel for addying 2 1D Arrays.  
-
-**Learned:**  
-- Same concepts with an extra input in form of an array.
-
-### Day 3: Naive Matmul (`matmul_gpu.cu`)  
-
-**Summary:**  
-Implemented a CUDA kernel for multiplying two matrices.  
-
-**Learned:**  
-- Indexing 2D threads and blocks.
-- Also, read PMPP chapter 2.
-
-### Day 4: Global memory coalescing in Matmul (`matmul_gpu.cu`)  
-
-**Summary:**  
-Implemented a CUDA kernel with coalesced global memory accesseses for multiplying two matrices.  
-
-**Learned:**  
-- Understood the fundamental logic behing global memory coalescing.
-
-### Day 5: Softmax (`softmax_gpu.cu`)  
-
-**Summary:**  
-Implemented a CUDA kernel to compute the softmax of an array.
-
-Also, the softmax kernel in its current form is super inefficient. I would want to considerably optimize this over a series of kernels.
+| **Day**    | **Code Summary**                                                   |
+|------------|--------------------------------------------------------------------|
+| Day 1      |  1D array copy                                                     |
+| Day 2      |  Add Arrays                                                        |
+| Day 3      |  Naive Matmul                                                      |
+| Day 4      |  Matmul with global memory coalescing                              |
+| Day 5      |  Softmax                                                           |
+| Day 6      |  Image Blur                                                        |
+| Day 7      |  Tiled matmul using shared memory                                  |
+| Day 8      |  Transpose of a Matrix                                             |
+| Day 9      |  Parallel Sum reduction                                            |
+| Day 10     |                                                      |
+| Day 11     |                         |
+| Day 12     |                                |
+| Day 13     |                 |
+| Day 14     |                                           |
+| Day 15     |                           |
+| Day 16     |                  |
+| Day 17     |                        |
+| Day 18     |                                 |
+| Day 19     |                                       |
+| Day 20    |    |
+| Day 21     |                                               |
+| Day 22     |  Sigmoid                                                           | 
+| Day 23     |  Sum Reduction With Warp Shuffles                                  |
+| Day 24     |  Mish Activation                                                   |
+| Day 25     |  Gelu Activations                                                  |
+| Day 26     |  Softmax with SHared Memory                                        |
+| Day 27     |  Swish Activations                                                 |
+| Day 28     |  Softmax with Warp Shuffles                                        |
+| Day 29     |  Flash Attention 1 (algorithm 1) Forward pass continued            |
