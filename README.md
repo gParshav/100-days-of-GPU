@@ -14,15 +14,15 @@
 | Day 10     |                                                      |
 | Day 11     |                         |
 | Day 12     |                                |
-| Day 13     |                 |
-| Day 14     |                                           |
-| Day 15     |                           |
-| Day 16     |                  |
-| Day 17     |                        |
-| Day 18     |                                 |
-| Day 19     |                                       |
-| Day 20    |    |
-| Day 21     |                                               |
+| Day 13     |  Matmul with cuBLAS               |
+| Day 14     |  Naive 2D Convolutions                                         |
+| Day 15     |  Naive 1D Convolutions                         |
+| Day 16     |  Naive Layernorm                |
+| Day 17     |  Online Softmax                      |
+| Day 18     |  RELU Activations                               |
+| Day 19     |  ELU Activations                                    |
+| Day 20    |   LayerNorm with Shared Memory  |
+| Day 21     |  Naive Attention                                             |
 | Day 22     |  Sigmoid                                                           | 
 | Day 23     |  Sum Reduction With Warp Shuffles                                  |
 | Day 24     |  Mish Activation                                                   |
