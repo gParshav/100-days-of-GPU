@@ -30,4 +30,4 @@
 | Day 26     |  Softmax with SHared Memory                                        |
 | Day 27     |  Swish Activations                                                 |
 | Day 28     |  Softmax with Warp Shuffles                                        |
-| Day 29     |  Flash Attention 1 (algorithm 1) Forward pass continued            |
+| Day 29     |  Asymmetric Quantization            |
